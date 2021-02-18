@@ -37,6 +37,7 @@ def loop():
             for job in add_list:
                 os.popen('kubectl apply -f ' + job + '.yaml')
                 current_pod = grep_pod(job, 0)
+                print("Append ", current_pod)
                 watch_list.append(current_pod)
 
             add_list[:] = []

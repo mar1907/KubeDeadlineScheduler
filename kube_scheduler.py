@@ -6,7 +6,7 @@ config.load_kube_config()
 v1 = client.CoreV1Api()
 waiting_pods = []
 lock = threading.Lock()
-nodes = 2
+nodes = 4
 running_pods = {x : [] for x in range(nodes)}
 
 
@@ -43,7 +43,9 @@ def nodes_contain(name):
 # Earliest deadline first
 def reorder_edf():
     global waiting_pods
+    print([x.annotations["deadline"] for x in waiting_pods])
     waiting_pods.sort(key=lambda x: float(x.annotations["deadline"]))
+    print([x.annotations["deadline"] for x in waiting_pods])
 
 # Shortest job first
 def reorder_sjf():
@@ -65,7 +67,7 @@ def reoreder_minsf():
 # the scheduling algorithm is called here
 def reoreder_list():
     # EDF
-    reorder_edf()
+    # reorder_edf()
 
     # SJF
     # reorder_sjf()
@@ -74,7 +76,7 @@ def reoreder_list():
     # reoreder_msf()
 
     #MinSF
-    # reoreder_minsf()
+    reoreder_minsf()
 
 def schedule(name):
     print(running_pods)
@@ -103,14 +105,14 @@ def main():
                 # add to list, trigger pod reordering
                 lock.acquire()
 
+                print("Added " + event['object'].metadata.name)
+
                 waiting_pods.append(event['object'].metadata)
                 reoreder_list()
 
-                print("Added " + event['object'].metadata.name)
-
                 # if nothing is running - schedule a pod
                 if nodes_free():
-                    new_pod = waiting_pods.pop().name
+                    new_pod = waiting_pods.pop(0).name
                     nodes_append(new_pod)
                     schedule(new_pod)
                 lock.release()
@@ -125,7 +127,7 @@ def main():
 
                 # if a pod is waiting to be scheduled - do it
                 if waiting_pods:
-                    new_pod = waiting_pods.pop().name
+                    new_pod = waiting_pods.pop(0).name
                     nodes_append(new_pod)
                     schedule(new_pod)
 
