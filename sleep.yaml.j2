@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sleep{{ number }}
+spec:
+  template:
+    metadata:
+      annotations:
+        deadline: "{{ deadline }}"
+        runtime: "{{ runtime }}"
+    spec:
+      containers:
+      - name: sleep0
+        image: python
+        command: ["python", "-c", "import time; print({{ deadline }}); time.sleep({{ runtime }}); print(time.time())"]
+      restartPolicy: Never
+      schedulerName: custom-scheduler
+  backoffLimit: 4
