@@ -9,8 +9,15 @@ test_array = [(0,3,10), (4,2,2), (9,11,15), (2,10,21), (2,3,13), (7,4,16), (1,11
 
 def generate():
     import random
-    for i in range(100):
+    with open("wide.py", "w") as f:
+        f.write("test_array = [")
+        for i in range(1000000 - 1):
+            sleep = random.randint(0, 10)
+            runtime = random.randint(2, 12)
+            deadline = runtime + random.randint(0, 20)
+            f.write("(%d,%d,%d)," % (sleep, runtime, deadline))
+
         sleep = random.randint(0, 10)
-        runtime = random.randint(2, 12)
+        runtime = random.randint(3, 5)
         deadline = runtime + random.randint(0, 20)
-        print("(%d,%d,%d)," % (sleep, runtime, deadline)),
+        f.write("(%d,%d,%d)]" % (sleep, runtime, deadline))

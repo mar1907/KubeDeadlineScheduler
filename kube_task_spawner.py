@@ -12,24 +12,27 @@ templateEnv = jinja2.Environment(loader=templateLoader)
 template = templateEnv.get_template("sleep.yaml.j2")
 
 nodes = kube_scheduler.nodes
-tasks = 100
 
-kube_job_manager.init_manager()
 
-for i in range(0, min(len(test_array), tasks)):
-    triple = test_array[i]
-    filename = "sleep" + str(i)
-    time.sleep(triple[0] / nodes)
-    print("Pushing task %s" % filename)
-    outputText = template.render(deadline=triple[2] + time.time(), runtime=triple[1], number=i)
+def spawner(tasks, shape):
+    kube_job_manager.init_manager()
 
-    f = open(filename + ".yaml", "w")
-    f.write(outputText)
-    f.close()
+    for i in range(0, min(len(test_array), tasks)):
+        triple = test_array[i]
+        filename = "sleep" + str(i)
+        time.sleep(triple[0] / nodes)
+        # print("Pushing task %s" % filename)
+        outputText = template.render(deadline=triple[2] + time.time(), runtime=triple[1], number=i)
 
-    kube_job_manager.add_job(filename)
+        f = open(filename + ".yaml", "w")
+        f.write(outputText)
+        f.close()
 
-while True:
-    time.sleep(10)
-    if not os.popen('kubectl get pods').read().split() :
-        break
+        kube_job_manager.add_job(filename)
+
+    while True:
+        time.sleep(10)
+        if not os.popen('kubectl get pods').read().split():
+            break
+
+    kube_job_manager.stop_manager()

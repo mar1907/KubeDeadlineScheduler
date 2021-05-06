@@ -9,6 +9,7 @@ add_list = []
 watch_list = []
 slack = 0
 
+
 def grep_pod(pod, x):
     pods = os.popen('kubectl get pods').read().split('\n')
     for line in pods:
@@ -20,15 +21,22 @@ def grep_pod(pod, x):
             
     return None
 
+
 def init_manager():
     global THREAD_STARTED
     THREAD_STARTED = True
     thread.start_new_thread(loop, ())
 
+
+def stop_manager():
+    global THREAD_STARTED
+    THREAD_STARTED = False
+
+
 def loop():
     global lock, add_list, watch_list, slack
-    while True:
-        time.sleep(1) # maybe not
+    while THREAD_STARTED:
+        time.sleep(1)  # maybe not
 
         # add new job
         if add_list:
@@ -63,6 +71,7 @@ def loop():
                 os.remove(job + ".yaml")
 
         print("Slack:" + str(slack))
+
 
 # job -> name of the yaml file (without extension)
 def add_job(job):

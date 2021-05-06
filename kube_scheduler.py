@@ -1,13 +1,15 @@
 from kubernetes import client, config, watch
 import threading
 import time
+import test_script
 
 config.load_kube_config()
 v1 = client.CoreV1Api()
 waiting_pods = []
 lock = threading.Lock()
-nodes = 4
-running_pods = {x : [] for x in range(nodes)}
+nodes = 1
+running_pods = {x: [] for x in range(nodes)}
+dropped_tasks = 0
 
 
 # Checks if any "node" is free by checking each list in the running_pods dictionary
@@ -19,6 +21,7 @@ def nodes_free():
 
     return False
 
+
 def nodes_append(name):
     global running_pods
     for i in range(nodes):
@@ -26,11 +29,13 @@ def nodes_append(name):
             running_pods[i].append(name)
             return
 
+
 def nodes_remove(name):
     global running_pods
     for i in range(nodes):
         if name in running_pods[i]:
             running_pods[i].remove(name)
+
 
 def nodes_contain(name):
     global running_pods
@@ -40,17 +45,18 @@ def nodes_contain(name):
 
     return False
 
+
 # Earliest deadline first
 def reorder_edf():
     global waiting_pods
-    print([x.annotations["deadline"] for x in waiting_pods])
     waiting_pods.sort(key=lambda x: float(x.annotations["deadline"]))
-    print([x.annotations["deadline"] for x in waiting_pods])
+
 
 # Shortest job first
 def reorder_sjf():
     global waiting_pods
     waiting_pods.sort(key=lambda x: float(x.annotations["runtime"]))
+
 
 # Maximum slack first
 def reoreder_msf():
@@ -58,28 +64,43 @@ def reoreder_msf():
     now = time.time()
     waiting_pods.sort(key=lambda x: -(float(x.annotations["deadline"]) - (now + float(x.annotations["runtime"]))))
 
+
 # Minimum slack first
 def reoreder_minsf():
     global waiting_pods
     now = time.time()
     waiting_pods.sort(key=lambda x: -(float(x.annotations["deadline"]) - (now + float(x.annotations["runtime"]))))
 
+
 # the scheduling algorithm is called here
 def reoreder_list():
-    # EDF
-    # reorder_edf()
+    type = test_script.ALGORITHM
+    if type is "edf":
+        reorder_edf()
+    elif type is "sjf":
+        reorder_sjf()
+    elif type is "msf":
+        reorder_sjf()
 
-    # SJF
-    # reorder_sjf()
 
-    # MSF
-    # reoreder_msf()
+def get_or_drop_pods():
+    global waiting_pods
 
-    #MinSF
-    reoreder_minsf()
+    if not test_script.DROP:
+        return waiting_pods.pop(0)
+
+    node = waiting_pods.pop(0)
+    while time.time() + node.annotations["runtime"] > node.annotations["deadline"]:
+        # delete from kubernetes
+        if not waiting_pods:
+            return None
+        else:
+            node = waiting_pods.pop(0)
+
+    return node
+
 
 def schedule(name):
-    print(running_pods)
     node = v1.list_node().items[0].metadata.name
     target = client.V1ObjectReference()
     target.kind = "Node"
@@ -90,10 +111,11 @@ def schedule(name):
     body = client.V1Binding(target=target)
     body.metadata = meta
     try:
-        print("Scheduled pod %s on node %s" % (name, node))
+        # print("Scheduled pod %s on node %s" % (name, node))
         v1.create_namespaced_binding("default", body)
     except:
         pass
+
 
 def main():
     global lock, waiting_pods, running_pods
@@ -105,16 +127,18 @@ def main():
                 # add to list, trigger pod reordering
                 lock.acquire()
 
-                print("Added " + event['object'].metadata.name)
+                # print("Added " + event['object'].metadata.name)
 
                 waiting_pods.append(event['object'].metadata)
                 reoreder_list()
 
                 # if nothing is running - schedule a pod
                 if nodes_free():
-                    new_pod = waiting_pods.pop(0).name
-                    nodes_append(new_pod)
-                    schedule(new_pod)
+                    new_pod = get_or_drop_pods()
+                    if new_pod is not None:
+                        new_pod_name = new_pod.name
+                        nodes_append(new_pod_name)
+                        schedule(new_pod_name)
                 lock.release()
 
         elif event['object'].status.phase == "Succeeded" and event['object'].spec.scheduler_name == "custom-scheduler":
@@ -127,9 +151,11 @@ def main():
 
                 # if a pod is waiting to be scheduled - do it
                 if waiting_pods:
-                    new_pod = waiting_pods.pop(0).name
-                    nodes_append(new_pod)
-                    schedule(new_pod)
+                    new_pod = get_or_drop_pods()
+                    if new_pod is not None:
+                        new_pod_name = new_pod.name
+                        nodes_append(new_pod_name)
+                        schedule(new_pod_name)
 
             lock.release()
 
