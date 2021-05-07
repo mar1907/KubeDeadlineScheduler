@@ -5,7 +5,6 @@ import jinja2
 import time
 import os
 
-test_array = test_case.test_array
 
 templateLoader = jinja2.FileSystemLoader(searchpath="./")
 templateEnv = jinja2.Environment(loader=templateLoader)
@@ -16,6 +15,8 @@ nodes = kube_scheduler.nodes
 
 def spawner(tasks, shape):
     kube_job_manager.init_manager()
+    imp = __import__(shape)
+    test_array = imp.test_array
 
     for i in range(0, min(len(test_array), tasks)):
         triple = test_array[i]

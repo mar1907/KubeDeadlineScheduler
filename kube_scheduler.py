@@ -2,6 +2,7 @@ from kubernetes import client, config, watch
 import threading
 import time
 import test_script
+import os
 
 config.load_kube_config()
 v1 = client.CoreV1Api()
@@ -83,15 +84,29 @@ def reoreder_list():
         reorder_sjf()
 
 
+def grep_jobs(job):
+    log = os.popen('kubectl get jobs').read().split("\n")
+    for line in log:
+        if job in line:
+            return True
+
+    return False
+
+
 def get_or_drop_pods():
-    global waiting_pods
+    global waiting_pods, dropped_tasks
 
     if not test_script.DROP:
         return waiting_pods.pop(0)
 
     node = waiting_pods.pop(0)
-    while time.time() + node.annotations["runtime"] > node.annotations["deadline"]:
+    while time.time() + float(node.annotations["runtime"]) > float(node.annotations["deadline"]):
         # delete from kubernetes
+        job = node.owner_references[0].name
+        if grep_jobs(job):
+            os.popen('kubectl delete job ' + job)
+            dropped_tasks += 1
+
         if not waiting_pods:
             return None
         else:

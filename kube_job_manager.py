@@ -23,7 +23,8 @@ def grep_pod(pod, x):
 
 
 def init_manager():
-    global THREAD_STARTED
+    global THREAD_STARTED, slack
+    slack = 0
     THREAD_STARTED = True
     thread.start_new_thread(loop, ())
 
@@ -45,7 +46,7 @@ def loop():
             for job in add_list:
                 os.popen('kubectl apply -f ' + job + '.yaml')
                 current_pod = grep_pod(job, 0)
-                print("Append ", current_pod)
+                # print("Append ", current_pod)
                 watch_list.append(current_pod)
 
             add_list[:] = []
@@ -54,8 +55,11 @@ def loop():
 
         # delete finished jobs
         if watch_list:
+            lock.acquire()
             for pod in list(watch_list):
                 status = grep_pod(pod, 2)
+                if status == None:
+                    watch_list.remove(pod)
                 if status != 'Completed':
                     continue
 
@@ -69,8 +73,7 @@ def loop():
                 watch_list.remove(pod)
 
                 os.remove(job + ".yaml")
-
-        print("Slack:" + str(slack))
+            lock.release()
 
 
 # job -> name of the yaml file (without extension)
