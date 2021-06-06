@@ -1,17 +1,32 @@
-import thread
+import _thread
 import threading
 import time
 import os
+import kube_scheduler
+import multitimer
 
 THREAD_STARTED = False
 lock = threading.Lock()
 add_list = []
 watch_list = []
 slack = 0
+node_load = [0] * kube_scheduler.nodes
+
+
+# Timer function check if node is busy, update load
+def increase_load():
+    global node_load
+    for i in range(kube_scheduler.nodes):
+        if kube_scheduler.running_pods[i]:
+            node_load[i] += 1
+
+
+timer = multitimer.MultiTimer(interval=1, function=increase_load)
 
 
 def grep_pod(pod, x):
     pods = os.popen('kubectl get pods').read().split('\n')
+    # print(pod, x, kube_scheduler.running_pods)
     for line in pods:
         if pod not in line:
             continue
@@ -23,14 +38,20 @@ def grep_pod(pod, x):
 
 
 def init_manager():
-    global THREAD_STARTED, slack
+    # print("FUNC: init_manager")
+    global THREAD_STARTED, slack, node_load, timer
     slack = 0
+    node_load = [0] * kube_scheduler.nodes
+    timer = multitimer.MultiTimer(interval=1, function=increase_load)
+    timer.start()
     THREAD_STARTED = True
-    thread.start_new_thread(loop, ())
+    _thread.start_new_thread(loop, ())
 
 
 def stop_manager():
-    global THREAD_STARTED
+    # print("FUNC: stop_manager")
+    global THREAD_STARTED, timer
+    timer.stop()
     THREAD_STARTED = False
 
 
@@ -46,6 +67,8 @@ def loop():
             for job in add_list:
                 os.popen('kubectl apply -f ' + job + '.yaml')
                 current_pod = grep_pod(job, 0)
+                while current_pod is None:
+                    current_pod = grep_pod(job, 0)
                 # print("Append ", current_pod)
                 watch_list.append(current_pod)
 

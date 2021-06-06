@@ -8,10 +8,22 @@ config.load_kube_config()
 v1 = client.CoreV1Api()
 waiting_pods = []
 lock = threading.Lock()
-nodes = 1
+nodes = 4
 running_pods = {x: [] for x in range(nodes)}
 dropped_tasks = 0
+DROP = True
+ALGO = "edf"
 
+
+# Set DROP value
+def set_drop(drop):
+    global DROP
+    DROP = drop
+
+# Set ALGO value
+def set_algo(algo):
+    global ALGO
+    ALGO = algo
 
 # Checks if any "node" is free by checking each list in the running_pods dictionary
 def nodes_free():
@@ -28,7 +40,7 @@ def nodes_append(name):
     for i in range(nodes):
         if not running_pods[i]:
             running_pods[i].append(name)
-            return
+            return i
 
 
 def nodes_remove(name):
@@ -75,12 +87,13 @@ def reoreder_minsf():
 
 # the scheduling algorithm is called here
 def reoreder_list():
-    type = test_script.ALGORITHM
-    if type is "edf":
+    global ALGO
+    type = ALGO
+    if type == "edf":
         reorder_edf()
-    elif type is "sjf":
+    elif type == "sjf":
         reorder_sjf()
-    elif type is "msf":
+    elif type == "msf":
         reorder_sjf()
 
 
@@ -94,15 +107,15 @@ def grep_jobs(job):
 
 
 def get_or_drop_pods():
-    global waiting_pods, dropped_tasks
+    global waiting_pods, dropped_tasks, DROP
 
-    if not test_script.DROP:
+    if not DROP:
         return waiting_pods.pop(0)
 
-    node = waiting_pods.pop(0)
-    while time.time() + float(node.annotations["runtime"]) > float(node.annotations["deadline"]):
+    pod = waiting_pods.pop(0)
+    while time.time() + float(pod.annotations["runtime"]) > float(pod.annotations["deadline"]):
         # delete from kubernetes
-        job = node.owner_references[0].name
+        job = pod.owner_references[0].name
         if grep_jobs(job):
             os.popen('kubectl delete job ' + job)
             dropped_tasks += 1
@@ -110,13 +123,13 @@ def get_or_drop_pods():
         if not waiting_pods:
             return None
         else:
-            node = waiting_pods.pop(0)
+            pod = waiting_pods.pop(0)
 
-    return node
+    return pod
 
 
-def schedule(name):
-    node = v1.list_node().items[0].metadata.name
+def schedule(name, node_index):
+    node = v1.list_node().items[node_index].metadata.name
     target = client.V1ObjectReference()
     target.kind = "Node"
     target.apiVersion = "v1"
@@ -151,9 +164,9 @@ def main():
                 if nodes_free():
                     new_pod = get_or_drop_pods()
                     if new_pod is not None:
-                        new_pod_name = new_pod.name
-                        nodes_append(new_pod_name)
-                        schedule(new_pod_name)
+                        node_index = nodes_append(new_pod.name)
+                        print("Schedule %s %d" % (new_pod.name, node_index))
+                        schedule(new_pod.name, node_index)
                 lock.release()
 
         elif event['object'].status.phase == "Succeeded" and event['object'].spec.scheduler_name == "custom-scheduler":
@@ -168,9 +181,9 @@ def main():
                 if waiting_pods:
                     new_pod = get_or_drop_pods()
                     if new_pod is not None:
-                        new_pod_name = new_pod.name
-                        nodes_append(new_pod_name)
-                        schedule(new_pod_name)
+                        node_index = nodes_append(new_pod.name)
+                        print("Schedule %s %d" % (new_pod.name, node_index))
+                        schedule(new_pod.name, node_index)
 
             lock.release()
 

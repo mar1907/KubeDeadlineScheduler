@@ -10,10 +10,9 @@ templateLoader = jinja2.FileSystemLoader(searchpath="./")
 templateEnv = jinja2.Environment(loader=templateLoader)
 template = templateEnv.get_template("sleep.yaml.j2")
 
-nodes = kube_scheduler.nodes
 
-
-def spawner(tasks, shape):
+def spawner(tasks, shape, nodes):
+    print("Start spawner")
     kube_job_manager.init_manager()
     imp = __import__(shape)
     test_array = imp.test_array
