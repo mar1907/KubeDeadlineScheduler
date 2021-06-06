@@ -1,0 +1,26 @@
+Size 100 algorithm edf drop True shape thin Slack 545.809649 Runtime 520 Dropped tasks 22 
+Size 100 algorithm edf drop True shape wide Slack 311.104676 Runtime 516 Dropped tasks 40 
+Size 100 algorithm edf drop False shape thin Slack -478.421869 Runtime 578 Dropped tasks 0 
+Size 100 algorithm edf drop False shape wide Slack -5367.749127 Runtime 783 Dropped tasks 0 
+Size 100 algorithm sjf drop True shape thin Slack 609.976749 Runtime 529 Dropped tasks 20 
+Size 100 algorithm sjf drop True shape wide Slack 449.077832 Runtime 529 Dropped tasks 34 
+Size 100 algorithm sjf drop False shape thin Slack -51.328174 Runtime 578 Dropped tasks 0 
+Size 100 algorithm sjf drop False shape wide Slack -2435.937269 Runtime 761 Dropped tasks 0 
+Size 100 algorithm msf drop True shape thin Slack 647.156444 Runtime 536 Dropped tasks 19 
+Size 100 algorithm msf drop True shape wide Slack 446.364157 Runtime 552 Dropped tasks 33 
+Size 100 algorithm msf drop False shape thin Slack 205.401044 Runtime 585 Dropped tasks 0 
+Size 100 algorithm msf drop False shape wide Slack -1538.561674 Runtime 753 Dropped tasks 0 
+
+Size 1000 algorithm edf drop True shape thin Slack 6341.161938 Runtime 5363 Dropped tasks 157 
+Size 1000 algorithm edf drop True shape wide Slack 4645.212192 Runtime 5755 Dropped tasks 346 
+Size 1000 algorithm edf drop False shape thin Slack 4156.679610 Runtime 5663 Dropped tasks 0 
+Size 1000 algorithm edf drop False shape wide Slack -16789.138120 Runtime 8048 Dropped tasks 0 
+Size 1000 algorithm sjf drop True shape thin Slack 6648.646953 Runtime 5559 Dropped tasks 156 
+Size 1000 algorithm sjf drop True shape wide Slack 5004.752144 Runtime 6107 Dropped tasks 328 
+Size 1000 algorithm sjf drop False shape thin Slack 4985.637675 Runtime 5922 Dropped tasks 0 
+Size 1000 algorithm sjf drop False shape wide Slack -9964.911719 Runtime 8111 Dropped tasks 0 
+Size 1000 algorithm msf drop True shape thin Slack 6775.777840 Runtime 5613 Dropped tasks 151 
+Size 1000 algorithm msf drop True shape wide Slack 5210.120695 Runtime 6229 Dropped tasks 322 
+Size 1000 algorithm msf drop False shape thin Slack 5299.801403 Runtime 5928 Dropped tasks 0 
+Size 1000 algorithm msf drop False shape wide Slack -6769.860219 Runtime 8129 Dropped tasks 0 
+Size 5000 algorithm edf drop True shape thin 
