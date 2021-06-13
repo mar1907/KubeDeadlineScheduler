@@ -25,7 +25,7 @@ def set_algo(algo):
     global ALGO
     ALGO = algo
 
-# Checks if any "node" is free by checking each list in the running_pods dictionary
+# Checks if any node is free by checking each list in the running_pods dictionary
 def nodes_free():
     global running_pods
     for i in range(nodes):
@@ -84,6 +84,29 @@ def reoreder_minsf():
     now = time.time()
     waiting_pods.sort(key=lambda x: -(float(x.annotations["deadline"]) - (now + float(x.annotations["runtime"]))))
 
+# Shortest job "adjusted" first
+def reorder_sjaf():
+    global waiting_pods
+    def adjust(runtime, fail):
+        total_runtime = runtime
+        fail_rate = fail / 100
+        while fail_rate*runtime > 1:
+            total_runtime += fail_rate*runtime
+            fail_rate *= fail_rate
+        
+        return total_runtime
+
+    waiting_pods.sort(key=lambda x: adjust(float(x.annotations["runtime"]), float(x.annotations["failure"])))
+    print("[")
+    for w in waiting_pods:
+        print(w.name, w.annotations["runtime"], adjust(float(w.annotations["runtime"]), float(w.annotations["failure"])))
+    print("]")
+
+# Largest failure (rate) first
+def reorder_lff():
+    global waiting_pods
+    waiting_pods.sort(key=lambda x: -float(x.annotations["failure"]))
+
 
 # the scheduling algorithm is called here
 def reoreder_list():
@@ -95,6 +118,10 @@ def reoreder_list():
         reorder_sjf()
     elif type == "msf":
         reorder_sjf()
+    elif type == "sjaf":
+        reorder_sjaf()
+    elif type == "lff":
+        reorder_lff()
 
 
 def grep_jobs(job):
@@ -169,7 +196,7 @@ def main():
                         schedule(new_pod.name, node_index)
                 lock.release()
 
-        elif event['object'].status.phase == "Succeeded" and event['object'].spec.scheduler_name == "custom-scheduler":
+        elif (event['object'].status.phase == "Succeeded" or event['object'].status.phase == "Failed") and event['object'].spec.scheduler_name == "custom-scheduler":
             # trigger pod scheduling
             lock.acquire()
 

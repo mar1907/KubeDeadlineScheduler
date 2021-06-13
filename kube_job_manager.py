@@ -20,8 +20,21 @@ def increase_load():
         if kube_scheduler.running_pods[i]:
             node_load[i] += 1
 
+def sync_lists():
+    global watch_list
+    print("Sync")
+    lock.acquire()
+    pods = os.popen('kubectl get pods').read().split('\n')
+    for line in pods:
+        elems = line.split(" ")
+        pod = elems[0]
+        if "sleep" in pod and pod not in watch_list:
+            watch_list.append(pod)
+    lock.release()
 
-timer = multitimer.MultiTimer(interval=1, function=increase_load)
+
+load_timer = multitimer.MultiTimer(interval=1, function=increase_load)
+sync_timer = multitimer.MultiTimer(interval=60, function=sync_lists)
 
 
 def grep_pod(pod, x):
@@ -39,26 +52,31 @@ def grep_pod(pod, x):
 
 def init_manager():
     # print("FUNC: init_manager")
-    global THREAD_STARTED, slack, node_load, timer
+    global THREAD_STARTED, slack, node_load, load_timer, sync_timer
     slack = 0
     node_load = [0] * kube_scheduler.nodes
-    timer = multitimer.MultiTimer(interval=1, function=increase_load)
-    timer.start()
+    load_timer = multitimer.MultiTimer(interval=1, function=increase_load)
+    load_timer.start()
+    sync_timer = multitimer.MultiTimer(interval=60, function=sync_lists)
+    sync_timer.start()
     THREAD_STARTED = True
     _thread.start_new_thread(loop, ())
 
 
 def stop_manager():
-    # print("FUNC: stop_manager")
-    global THREAD_STARTED, timer
-    timer.stop()
+    print("FUNC: stop_manager")
+    global THREAD_STARTED, load_timer, sync_timer
+    load_timer.stop()
+    sync_timer.stop()
     THREAD_STARTED = False
 
 
 def loop():
-    global lock, add_list, watch_list, slack
+    global lock, add_list, watch_list, slack, THREAD_STARTED
     while THREAD_STARTED:
         time.sleep(1)  # maybe not
+        print(time.time())
+        print(watch_list)
 
         # add new job
         if add_list:
@@ -83,6 +101,15 @@ def loop():
                 status = grep_pod(pod, 2)
                 if status == None:
                     watch_list.remove(pod)
+                if status == 'Error':
+                    # Job failed: retry it manually
+                    # print(os.popen('kubectl logs ' + pod).read())
+                    os.popen('kubectl delete pod ' + pod)
+                    job = pod.split("-")[0]
+                    os.popen('kubectl delete job ' + job)
+
+                    watch_list.remove(pod)
+                    _thread.start_new_thread(add_job, (job,))
                 if status != 'Completed':
                     continue
 
@@ -97,6 +124,8 @@ def loop():
 
                 os.remove(job + ".yaml")
             lock.release()
+
+    return
 
 
 # job -> name of the yaml file (without extension)

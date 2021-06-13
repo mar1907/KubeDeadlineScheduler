@@ -6,17 +6,22 @@ import _thread
 
 # algorithm list and current
 ALGORITHM = "edf"
-algorithms = ["edf", "sjf", "msf"]
+# algorithms = ["edf", "sjf", "msf"]
+algorithms = ["edf", "lff", "sjaf", "sjf", "edf", "lff"]
+# algorithms = ["lff"]
 
 DROP = True
-drops = [True, False]
+# drops = [False, True]
+drops = [False]
 
 SIZE = 100
 # sizes = [100, 1000]
-sizes = [6, 2, 3]
+# sizes = [15, 2, 3]
+sizes = [1000]
 
 SHAPE = "thin"
-shapes = ["thin", "wide"]
+# shapes = ["thin", "wide"]
+shapes = ["wide"]
 
 
 def main():
@@ -43,6 +48,7 @@ def main():
                 # iterate through all the shapes
                 for shape in shapes:
                     SHAPE = shape
+                    print("Size %d algorithm %s drop %s shape %s " % (SIZE, ALGORITHM, DROP, SHAPE))
 
                     f.write("Size %d algorithm %s drop %s shape %s " % (SIZE, ALGORITHM, DROP, SHAPE))
 
@@ -51,7 +57,7 @@ def main():
                     kube_scheduler.dropped_tasks = 0
 
                     # run a test with these parameters
-                    kube_task_spawner.spawner(SIZE, SHAPE, node_count)
+                    kube_task_spawner.spawner(SIZE, SHAPE, node_count, fail_enabled=True)
 
                     # Print collected results
                     total_time = time.time() - start

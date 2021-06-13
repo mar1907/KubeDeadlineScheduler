@@ -21,3 +21,14 @@ def generate():
         runtime = random.randint(3, 5)
         deadline = runtime + random.randint(0, 20)
         f.write("(%d,%d,%d)]" % (sleep, runtime, deadline))
+
+def generate_failure_rates():
+    import random
+    with open("fail.py", "w") as f:
+        f.write("fail_array = [")
+        for i in range(1000 - 1):
+            failure = random.randint(10, 50)
+            f.write("%d," % failure)
+        
+        failure = random.randint(10, 50)
+        f.write("%d]" % failure)

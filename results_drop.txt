@@ -1,0 +1,19 @@
+Size 1000 algorithm sjaf drop False shape wide Slack -74800.344755 Runtime 3160 Dropped tasks 0 Node load ['99.16%', '98.62%', '98.62%', '98.52%']
+Size 1000 algorithm sjf drop False shape wide Slack -67621.840460 Runtime 2954 Dropped tasks 0 Node load ['99.58%', '99.1%', '98.83%', '98.63%']
+Size 1000 algorithm edf drop False shape wide Slack -68600.991906 Runtime 3255 Dropped tasks 0 Node load ['98.45%', '98.35%', '98.51%', '98.32%']
+Size 1000 algorithm lff drop False shape wide Slack -61282.146672 Runtime 3128 Dropped tasks 0 Node load ['99.61%', '99.48%', '99.57%', '99.48%']
+Size 1000 algorithm lff drop False shape wide Slack -46285.308582 Runtime 3151 Dropped tasks 0 Node load ['99.36%', '99.14%', '99.08%', '99.11%']
+Size 1000 algorithm sjaf drop False shape wide Slack -61485.984720 Runtime 3217 Dropped tasks 0 Node load ['98.95%', '98.52%', '98.52%', '98.36%']
+Size 1000 algorithm sjaf drop False shape wide Slack -69788.377645 Runtime 2941 Dropped tasks 0 Node load ['99.28%', '98.84%', '98.36%', '98.56%']
+Size 1000 algorithm sjf drop False shape wide Slack -76266.120760 Runtime 3098
+Size 1000 algorithm edf drop False shape wide Slack -67313.521405 Runtime 3345 Dropped tasks 0 Node load ['97.17%', '97.59%', '97.02%', '96.84%']
+Size 1000 algorithm lff drop False shape wide Slack -58790.110738 Runtime 3320 Dropped tasks 0 Node load ['197.92%', '198.07%', '198.19%', '197.79%']
+Size 1000 algorithm sjaf drop False shape wide Slack -60485.824846 Runtime 3332 Dropped tasks 0 Node load ['296.88%', '296.19%', '295.53%', '293.54%']
+Size 1000 algorithm sjf drop False shape wide Slack -54644.530825 Runtime 3322 Dropped tasks 0 Node load ['396.92%', '394.9%', '392.77%', '393.58%']
+Size 1000 algorithm edf drop False shape wide Slack -62140.043404 Runtime 3276 Dropped tasks 0 Node load ['497.61%', '497.76%', '496.67%', '496.97%']
+Size 1000 algorithm lff drop False shape wide Slack -67096.081353 Runtime 3416 Dropped tasks 0 Node load ['593.21%', '593.06%', '593.47%', '592.98%']
+
+sjaf = -66640
+sjf = -66177
+edf = -66018
+lff = -58363
