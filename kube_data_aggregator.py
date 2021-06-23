@@ -74,6 +74,13 @@ y_pos_fail = np.arange(len(fail_objects))
 objects = ("EDF", "SJF", "MSF")
 y_pos = np.arange(len(objects))
 
+value_value_4 = [5147, 4802, 3477, 4625, 5068]
+value_drop_4 = [303, 314, 336, 337, 282]
+value_slack_4 = [5087, 4206, 3809, 5653, 5431]
+value_objects = ("HVF+Drop", "DSC+2", "DSC+adj", "DSC+adj+no", "DSC+2+no")
+value_load_4 = [[0.95, 0.98, 0.91, 0.88, 0.97], [0.95, 0.95, 0.88, 0.88, 0.93], [0.94, 0.89, 0.74, 0.82, 0.91], [0.92, 0.75, 0.65, 0.73, 0.84]]
+y_pos_value = np.arange(len(value_objects))
+
 # plt.plot(datax, edf3, marker=".", linestyle="--", label="EDF")
 # plt.plot(datax, sjf3, marker=".", linestyle="--", label="SJF")
 # plt.plot(datax, msf3, marker=".", linestyle="--", label="MSF")
@@ -97,7 +104,7 @@ y_pos = np.arange(len(objects))
 
 def gen_slack_1():
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.subplots_adjust(wspace=.3, top=.95)
     ax1.bar(y_pos, slack_drop_thin_1, width=0.5, color=['blue', 'orange', 'green'])
     ax1.set_xticks(y_pos, minor=False)
@@ -121,6 +128,7 @@ def gen_slack_1():
     ax4.set_xticklabels(objects, fontdict=None, minor=False)
     ax4.set_title("No Drop, Wide")
 
+    fig.tight_layout()
     plt.savefig("graph_slack1.png")
 
 def gen_runtime_1():
@@ -281,7 +289,7 @@ def gen_load_2():
 
 def gen_slack_4():
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.subplots_adjust(wspace=.3, top=.95)
     ax1.bar(y_pos, slack_drop_thin_4, width=0.5, color=['blue', 'orange', 'green'])
     ax1.set_xticks(y_pos, minor=False)
@@ -305,6 +313,7 @@ def gen_slack_4():
     ax4.set_xticklabels(objects, fontdict=None, minor=False)
     ax4.set_title("No Drop, Wide")
 
+    fig.tight_layout()
     plt.savefig("graph_slack4.png")
 
 def gen_runtime_4():
@@ -337,7 +346,7 @@ def gen_runtime_4():
 
 def gen_drop_4():
     fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.subplots_adjust(top=.95)
     ax1.bar(y_pos, drop_thin_4, width=0.5, color=['blue', 'orange', 'green'])
     ax1.set_xticks(y_pos, minor=False)
@@ -350,13 +359,14 @@ def gen_drop_4():
     ax2.set_xticklabels(objects, fontdict=None, minor=False)
     ax2.set_title("Drop, Wide")
 
+    fig.tight_layout()
     plt.savefig("graph_drop4.png")
 
 def gen_load_4():
     width = 0.2
     nodes = 4
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.subplots_adjust(wspace=.3, top=.95)
     ax1.bar(y_pos, load_drop_thin_4[0], width, color="C4", label="Node 1")
     ax1.bar(y_pos + width, load_drop_thin_4[1], width, color="C5", label="Node 2")
@@ -396,6 +406,7 @@ def gen_load_4():
     fig.legend(handles, labels, loc='upper center')
     # plt.legend()
 
+    fig.tight_layout()
     plt.savefig("graph_load4.png")
 
 def gen_slack_fail_4():
@@ -408,8 +419,53 @@ def gen_slack_fail_4():
 
     plt.savefig("graph_slack_fail4.png")
 
+def gen_value_value4():
+    plt.tight_layout()
+    plt.gcf().subplots_adjust(wspace=.3, top=.95)
+    plt.bar(y_pos_value, value_value_4, width=0.5, color=["C0", "C1", "C2", "C3", "C4"])
+    plt.xticks(y_pos_value, value_objects)
+    plt.ylabel("Value")
+    plt.title("Value")
 
-# gen_slack_1()
+    plt.savefig("graph_value4.png")
+
+def gen_value_drop4():
+    plt.tight_layout()
+    plt.gcf().subplots_adjust(wspace=.3, top=.95)
+    plt.bar(y_pos_value, value_drop_4, width=0.5, color=["C0", "C1", "C2", "C3", "C4"])
+    plt.xticks(y_pos_value, value_objects)
+    plt.ylabel("Drop")
+    plt.title("Drop")
+
+    plt.savefig("graph_value_drop4.png")
+
+def gen_value_slack4():
+    plt.tight_layout()
+    plt.gcf().subplots_adjust(wspace=.3, top=.95)
+    plt.bar(y_pos_value, value_slack_4, width=0.5, color=["C0", "C1", "C2", "C3", "C4"])
+    plt.xticks(y_pos_value, value_objects)
+    plt.ylabel("Slack (s)")
+    plt.title("Slack")
+
+    plt.savefig("graph_value_slack4.png")
+
+def gen_value_load4():
+    plt.tight_layout()
+    plt.gcf().subplots_adjust(wspace=.3, top=.95)
+    width = 0.2
+    plt.bar(y_pos_value, value_load_4[0], width, color="C0", label="Node 1")
+    plt.bar(y_pos_value + width, value_load_4[1], width, color="C1", label="Node 2")
+    plt.bar(y_pos_value + 2*width, value_load_4[2], width, color="C2", label="Node 3")
+    plt.bar(y_pos_value + 3*width, value_load_4[3], width, color="C3", label="Node 4")
+    plt.xticks(y_pos_value + width * 3/2, value_objects)
+    plt.ylabel("Load (%)")
+    plt.title("Load")
+    plt.legend(loc='lower right')
+
+    plt.savefig("graph_value_load4.png")
+
+
+gen_slack_1()
 # gen_runtime_1()
 # gen_drop_1()
 
@@ -418,9 +474,14 @@ def gen_slack_fail_4():
 # gen_drop_2()
 # gen_load_2()
 
-# gen_slack_4()
+gen_slack_4()
 # gen_runtime_4()
 # gen_drop_4()
 # gen_load_4()
 
-gen_slack_fail_4()
+# gen_slack_fail_4()
+
+# gen_value_value4()
+# gen_value_drop4()
+# gen_value_slack4()
+# gen_value_load4()

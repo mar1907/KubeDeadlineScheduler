@@ -7,8 +7,9 @@ import _thread
 # algorithm list and current
 ALGORITHM = "edf"
 # algorithms = ["edf", "sjf", "msf"]
-algorithms = ["edf", "lff", "sjaf", "sjf", "edf", "lff"]
-# algorithms = ["lff"]
+# algorithms = ["edf", "lff", "sjaf", "sjf", "edf", "lff"]
+# algorithms = ["hvf", "hvf_d"]
+algorithms = {"dsc"}
 
 DROP = True
 # drops = [False, True]
@@ -16,7 +17,7 @@ drops = [False]
 
 SIZE = 100
 # sizes = [100, 1000]
-# sizes = [15, 2, 3]
+# sizes = [30, 2, 3]
 sizes = [1000]
 
 SHAPE = "thin"
@@ -55,6 +56,7 @@ def main():
                     start = time.time()
 
                     kube_scheduler.dropped_tasks = 0
+                    kube_scheduler.reset_history()
 
                     # run a test with these parameters
                     kube_task_spawner.spawner(SIZE, SHAPE, node_count, fail_enabled=True)
@@ -64,7 +66,8 @@ def main():
                     node_load = [str(round((x / total_time) * 100, 2)) + "%" for x in kube_job_manager.node_load]
                     f.write("Slack %f " % kube_job_manager.slack)
                     f.write("Runtime %d " % (total_time))
-                    f.write("Dropped tasks %d " % kube_scheduler.dropped_tasks)
+                    f.write("Dropped tasks %d " % kube_job_manager.dropped)
+                    f.write("Value %d " % kube_job_manager.value)
                     f.write("Node load " + str(node_load))
                     f.write("\n")
 

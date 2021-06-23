@@ -8,7 +8,6 @@ spec:
       annotations:
         deadline: "{{ deadline }}"
         runtime: "{{ runtime }}"
-        failure: "{{ failure }}"
     spec:
       containers:
       - name: sleep0
@@ -16,11 +15,9 @@ spec:
         command: ["python", "-c"]
         args:
         - "import time;
-          import random;
-          random.seed(time.time());
-          print({{ deadline }}, end=' ');
+          print({{ deadline }});
+          print({{ runtime }});
           time.sleep({{ runtime }});
-          print(1/0) if random.randrange(100) < {{ failure }} else print(' ');
           print(time.time())"
         imagePullPolicy: IfNotPresent
       restartPolicy: Never

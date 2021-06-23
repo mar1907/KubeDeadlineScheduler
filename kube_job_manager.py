@@ -10,6 +10,8 @@ lock = threading.Lock()
 add_list = []
 watch_list = []
 slack = 0
+value = 0
+dropped = 0
 node_load = [0] * kube_scheduler.nodes
 
 
@@ -21,7 +23,7 @@ def increase_load():
             node_load[i] += 1
 
 def sync_lists():
-    global watch_list
+    global watch_list, lock
     print("Sync")
     lock.acquire()
     pods = os.popen('kubectl get pods').read().split('\n')
@@ -52,8 +54,10 @@ def grep_pod(pod, x):
 
 def init_manager():
     # print("FUNC: init_manager")
-    global THREAD_STARTED, slack, node_load, load_timer, sync_timer
+    global THREAD_STARTED, slack, node_load, load_timer, sync_timer, value, dropped
     slack = 0
+    value = 0
+    dropped = 0
     node_load = [0] * kube_scheduler.nodes
     load_timer = multitimer.MultiTimer(interval=1, function=increase_load)
     load_timer.start()
@@ -72,15 +76,17 @@ def stop_manager():
 
 
 def loop():
-    global lock, add_list, watch_list, slack, THREAD_STARTED
+    global lock, add_list, watch_list, slack, value, THREAD_STARTED
     while THREAD_STARTED:
         time.sleep(1)  # maybe not
-        print(time.time())
-        print(watch_list)
+        # print(time.time())
+        # print(watch_list)
 
         # add new job
         if add_list:
             lock.acquire()
+
+            # print("Add_list", add_list)
 
             for job in add_list:
                 os.popen('kubectl apply -f ' + job + '.yaml')
@@ -114,7 +120,15 @@ def loop():
                     continue
 
                 log = os.popen('kubectl logs ' + pod).read().split("\n")
-                slack += float(log[0]) - float(log[1])
+                current_slack = float(log[0]) - float(log[2])
+                slack += current_slack
+                # should use 0, but accept 1 sec delay to account for lateness in execution
+                print("Value ", pod, current_slack)
+                if current_slack >= -1:
+                    value += float(log[1])
+                else:
+                    value += current_slack
+                print("New value ", value)
                 # logs.append(log) deal with logs!!
                 os.popen('kubectl delete pod ' + pod)
                 job = pod.split("-")[0]
@@ -137,4 +151,27 @@ def add_job(job):
 
     lock.acquire()
     add_list.append(job)
+    lock.release()
+
+def delete_job(pod, new_value):
+    if not THREAD_STARTED:
+        return
+
+    global lock, watch_list, value, dropped
+
+    lock.acquire()
+    if pod in watch_list:
+        watch_list.remove(pod)
+        dropped += 1
+
+        os.popen('kubectl delete pod ' + pod)
+        job = pod.split("-")[0]
+        os.popen('kubectl delete job ' + job)
+        try:
+            os.remove(job + ".yaml")
+        except:
+            pass
+        value += new_value
+        print("Delete",pod,value)
+
     lock.release()
